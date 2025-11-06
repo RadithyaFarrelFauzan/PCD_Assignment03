@@ -1,0 +1,74 @@
+# PCD_Assignment03
+# Segmentation and Morphological Operations (No Library)
+
+
+# Simple grayscale image (8x8)
+image = [
+    [10, 12, 15, 200, 210, 220, 200, 180],
+    [12, 14, 20, 210, 220, 230, 210, 190],
+    [15, 18, 25, 220, 230, 240, 220, 200],
+    [10, 15, 20, 200, 210, 220, 200, 180],
+    [10, 12, 18, 20, 25, 30, 25, 20],
+    [5, 8, 10, 15, 18, 20, 15, 10],
+    [5, 5, 5, 10, 12, 15, 10, 5],
+    [0, 0, 0, 5, 5, 10, 5, 0]
+]
+
+#  1. Segmentation (Thresholding) 
+def threshold_segmentation(img, threshold):
+    segmented = []
+    for row in img:
+        segmented_row = []
+        for pixel in row:
+            if pixel >= threshold:
+                segmented_row.append(1)  # foreground
+            else:
+                segmented_row.append(0)  # background
+        segmented.append(segmented_row)
+    return segmented
+
+#  2. Morphological Operations 
+
+def erosion(img):
+    rows, cols = len(img), len(img[0])
+    result = [[0]*cols for _ in range(rows)]
+    for i in range(1, rows-1):
+        for j in range(1, cols-1):
+            # if all 3x3 neighbors are 1
+            if all(img[i+dx][j+dy] == 1 for dx in [-1,0,1] for dy in [-1,0,1]):
+                result[i][j] = 1
+    return result
+
+def dilation(img):
+    rows, cols = len(img), len(img[0])
+    result = [[0]*cols for _ in range(rows)]
+    for i in range(1, rows-1):
+        for j in range(1, cols-1):
+            # if any 3x3 neighbor is 1
+            if any(img[i+dx][j+dy] == 1 for dx in [-1,0,1] for dy in [-1,0,1]):
+                result[i][j] = 1
+    return result
+
+def opening(img):
+    return dilation(erosion(img))
+
+def closing(img):
+    return erosion(dilation(img))
+
+#  3. Run and Compare Results 
+
+threshold = 100
+segmented = threshold_segmentation(image, threshold)
+opened = opening(segmented)
+closed = closing(segmented)
+
+# Function to print matrices nicely
+def show_matrix(matrix, title):
+    print(f"\n{title}:")
+    for row in matrix:
+        print(" ".join(str(x) for x in row))
+
+# Display all results
+show_matrix(segmented, "Original Segmentation (Threshold = 100)")
+show_matrix(opened, "After Opening (Noise Removal)")
+show_matrix(closed, "After Closing (Hole Filling)")
